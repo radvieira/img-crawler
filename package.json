@@ -1,0 +1,25 @@
+{
+  "name": "img-crawler",
+  "version": "0.0.0",
+  "description": "A module to download images from a given webpage",
+  "main": "main.js",
+  "dependencies": {
+    "commander": "~1.1.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": "",
+  "keywords": [
+    "crawl",
+    "crawler",
+    "image",
+    "images",
+    "downloader",
+    "graphics",
+    "spider"
+  ],
+  "author": {"name": "Raul Vieira", "email": "radvieira@gmail.com"},
+  "license": "BSD"
+}
