@@ -4,11 +4,14 @@
   "description": "A module to download images from a given webpage",
   "main": "main.js",
   "dependencies": {
-    "commander": "~1.1.1"
+    "htmlparser": "~1.7.6",
+    "request": "~2.12.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "mocha": "~1.8.1"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "make test"
   },
   "repository": "",
   "keywords": [
@@ -20,6 +23,10 @@
     "graphics",
     "spider"
   ],
-  "author": {"name": "Raul Vieira", "email": "radvieira@gmail.com"},
-  "license": "BSD"
+  "author": "Raul Vieira <radvieira@gmail.com>",
+  "license": "BSD",
+  "readmeFilename": "README.md",
+  "directories": {
+    "test": "test"
+  }
 }

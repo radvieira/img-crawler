@@ -1,20 +1,60 @@
-var program = require('commander'),
+var request = require('request'),
+	htmlparser = require("htmlparser");
+
+var getSourceWhenImage = function(element) {
 	
-program.validate = function() {
-		
-	if(!program.source) {
-		console.log('Can\'t crawl for images without a source.');
-		process.exit();
+	if(element.name === 'img' && element.attribs && element.attribs.src) {
+		return 	element.attribs.src.trim();
 	}
 	
 };
 
-program
-	.option('-s, --source [url]', 'The site to crawlExample, http://github.com')
-	.option('-p, --path [path]', 'The location to place the images')
-	.parse(process.argv)
-	.validate();
+var collectImages = function(imageSrcs, elements) {
+	
+	var i, element, src;
+	
+	for(i = 0; i < elements.length; i++) {
+		
+		element = elements[i];
+		src = getSourceWhenImage(element);
+		
+		if(src) {				
+			imageSrcs.push(src);
+		} else if(element.children) {
+			collectImages(imageSrcs, element.children);			
+		}
+
+	}
+	
+};
+
+module.exports.crawl = function(url, callback){
+	
+	request(url, function(err, response, body) {
+	
+		if(!err) {
+			
+			var handler = new htmlparser.DefaultHandler(function (error, dom) {
+
+				var imageSrcs = [];
+
+				collectImages(imageSrcs, dom);								
+
+				callback({srcs: imageSrcs});
+
+			});
+			
+			var parser = new htmlparser.Parser(handler);
+			parser.parseComplete(body);
+			
+		}
+
+	});
+
+	
+	
+};
+	
 
 
-console.log('Crawling ' + program.source + ' for images');
-console.log('Going to place images in ' + program.path);
+	
