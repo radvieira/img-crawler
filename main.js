@@ -45,22 +45,22 @@ var getImagesFromBody = function(body, callback) {
 
 };
 
-module.exports.crawl = function(url, callback){
+var getPageLoadHandler = function(callback) {
 	
-	request(url, function(err, response, body) {
-
+	return function(err, response, body) {
+		
 		if(!err) {
-
+	
 			switch(response.statusCode) {
 				
 				case 200: 
 					
 					getImagesFromBody(body, callback);
-
+	
 					break;
 				
 				case 404:
-
+	
 					callback('Page not found');
 					
 					break;
@@ -75,11 +75,13 @@ module.exports.crawl = function(url, callback){
 			callback();
 		
 		}
+	};
+};
 
-	});
+module.exports.crawl = function(url, callback){
+	
+	request(url, getPageLoadHandler(callback));
 
-	
-	
 };
 	
 
