@@ -49,15 +49,12 @@ module.exports =
 	
 	/* Binds a handler function to a path */
 	addRoute: function(path, handler) {
-		console.log('adding path ' + path);
 		routes[path] = handler;
-		console.dir(routes);
 		return this;
 	},
 	
 	/* Runs a handler or serves static content for the request */
 	route: function(req, res) {
-		console.log(req.url);
 		if(routes[req.url]) {
 			routes[req.url](req, res);
 		} else {

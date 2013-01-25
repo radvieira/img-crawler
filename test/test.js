@@ -7,14 +7,14 @@ var assert = require('assert'),
 http.createServer(dispatcher.root(path).route).listen(1111);
 
 var makeURLFor = function(pageName) {
-	return 'http://localhost:1111/' + pageName;
+	return 'http://localhost:1111' + pageName;
 };
 
 suite('crawl', function() {
 	
 	test('reads nested images', function(done) {
 	
-		fixture.crawl(makeURLFor('single-img-scenario.html'), function(err, data){
+		fixture.crawl(makeURLFor('/single-img-scenario.html'), function(err, data){
 			
 			assert.equal(1, data.srcs.length);
 			assert.equal('img/yield.gif', data.srcs[0]);
@@ -27,7 +27,7 @@ suite('crawl', function() {
 	
 	test('reads multiple nested images', function(done) {
 
-		fixture.crawl(makeURLFor('nested-img-scenario.html'), function(err, data){
+		fixture.crawl(makeURLFor('/nested-img-scenario.html'), function(err, data){
 			
 			assert.equal(3, data.srcs.length);
 			assert.equal('img/yield.gif', data.srcs[0]);
@@ -42,7 +42,7 @@ suite('crawl', function() {
 	
 	test('when no image tags', function(done) {
 		
-		fixture.crawl(makeURLFor('no-img-tags-scenario.html'), function(err, data) {
+		fixture.crawl(makeURLFor('/no-img-tags-scenario.html'), function(err, data) {
 
 			assert.equal(0, data.srcs.length);
 			
@@ -52,7 +52,7 @@ suite('crawl', function() {
 	
 	test('when image tag has no source attribute', function(done) {
 		
-		fixture.crawl(makeURLFor('no-img-src-scenario.html'), function(err, data) {
+		fixture.crawl(makeURLFor('/no-img-src-scenario.html'), function(err, data) {
 			
 			assert.equal(0, data.srcs.length);
 			
@@ -64,7 +64,7 @@ suite('crawl', function() {
 	
 	test('when image tag has empty source attribue', function(done) {
 
-		fixture.crawl(makeURLFor('empty-img-src-scenario.html'), function(err, data) {
+		fixture.crawl(makeURLFor('/empty-img-src-scenario.html'), function(err, data) {
 			
 			assert.equal(0, data.srcs.length);
 			
@@ -76,7 +76,7 @@ suite('crawl', function() {
 	
 	test('when page is not found', function(done) {
 	
-		fixture.crawl(makeURLFor('no-where.html'), function(err, data) {
+		fixture.crawl(makeURLFor('/no-where.html'), function(err, data) {
 		
 			assert.equal(err, 'Page not found');
 
@@ -88,13 +88,13 @@ suite('crawl', function() {
 	
 	test('when server returns 500', function(done) {
 	
-		var resourceName = 'send-server-error';
-		dispatcher.addRoute('/' + resourceName, function(req, res){
+		var resourcePath = '/send-server-error';
+		dispatcher.addRoute(resourcePath, function(req, res){
 			res.writeHead(500, {'Content-Type': 'text/html'});
 			res.end();
 		});
 		
-		fixture.crawl(makeURLFor(resourceName), function(err, data){
+		fixture.crawl(makeURLFor(resourcePath), function(err, data){
 		
 			assert.equal(err, 'Received an unsupported response code 500');
 			
