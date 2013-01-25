@@ -1,0 +1,4 @@
+{ 
+	"description" : "Another really simple http router",
+	"main" : "router.js"	
+}

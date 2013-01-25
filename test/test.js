@@ -1,6 +1,6 @@
 var assert = require('assert'),
 	http = require('http'),
-	dispatcher = require('./lib/dispatcher'),
+	dispatcher = require('./lib/request-route'),
 	fixture = require('../main'),
 	path = process.env.PWD + '/test/test-responses';
 
@@ -89,6 +89,7 @@ suite('crawl', function() {
 	test('when server returns 500', function(done) {
 	
 		var resourcePath = '/send-server-error';
+		
 		dispatcher.addRoute(resourcePath, function(req, res){
 			res.writeHead(500, {'Content-Type': 'text/html'});
 			res.end();

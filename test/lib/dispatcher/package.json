@@ -1,4 +1,0 @@
-{ 
-	"description" : "Learning how to use node - A really simple http router",
-	"main" : "dispatcher.js"	
-}
