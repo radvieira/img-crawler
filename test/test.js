@@ -6,8 +6,8 @@ var assert = require('assert'),
 
 http.createServer(dispatcher.root(path).route).listen(1111);
 
-var makeURLFor = function(pageName) {
-	return 'http://localhost:1111' + pageName;
+var makeURLFor = function(resourcePath) {
+	return 'http://localhost:1111' + resourcePath;
 };
 
 suite('crawl', function() {
