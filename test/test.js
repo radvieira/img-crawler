@@ -86,6 +86,24 @@ suite('crawl', function() {
 	
 	});
 	
+	test('when server returns 500', function(done) {
+	
+		var resourceName = 'send-server-error';
+		dispatcher.addRoute('/' + resourceName, function(req, res){
+			res.writeHead(500, {'Content-Type': 'text/html'});
+			res.end();
+		});
+		
+		fixture.crawl(makeURLFor(resourceName), function(err, data){
+		
+			assert.equal(err, 'Received an unsupported response code 500');
+			
+			done();
+		
+		});
+	
+	});
+	
 });
 
 	

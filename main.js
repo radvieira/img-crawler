@@ -61,9 +61,13 @@ module.exports.crawl = function(url, callback){
 				
 				case 404:
 
-					callback('Page not found', undefined);
+					callback('Page not found');
 					
 					break;
+					
+				default:
+				
+					callback('Received an unsupported response code ' + response.statusCode);
 			}
 			
 		} else {
