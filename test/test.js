@@ -78,7 +78,7 @@ suite('crawl', function() {
 	
 		fixture.crawl(makeURLFor('/no-where.html'), function(err, data) {
 		
-			assert.equal(err, 'Page not found');
+			assert.equal(err.message, 'Page not found');
 
 			done();
 		
@@ -97,12 +97,35 @@ suite('crawl', function() {
 		
 		fixture.crawl(makeURLFor(resourcePath), function(err, data){
 		
-			assert.equal(err, 'Received an unsupported response code 500');
+			assert.equal(err.message, 'Received an unsupported response code');
+			assert.equal(err.http_status_code, 500);
 			
 			done();
 		
 		});
 	
+	});
+	
+	test('host connection refused', function(done) {
+		var noHostURL = 'http://localhost:1/bogus';
+
+		fixture.crawl(noHostURL, function(err, data){
+			
+			assert.equal(err.code, 'ECONNREFUSED');
+			
+			done();
+			
+		});
+		
+	});
+	
+	test('malformed URL', function(done) {
+		fixture.crawl('amalformedurl', function(err, data) {
+		
+			assert.equal(err.message, 'Invalid URI "amalformedurl"');
+		
+			done();
+		});
 	});
 	
 });

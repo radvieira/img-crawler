@@ -48,7 +48,9 @@ var webPage = function(url, onComplete) {
 	};
 	
 	var handlePageResponse = function(response, body) {
-
+		
+		var err;
+		
 		switch(response.statusCode) {
 			
 			case 200: 
@@ -57,13 +59,16 @@ var webPage = function(url, onComplete) {
 				break;
 			
 			case 404:
-	
-				onComplete('Page not found');
+				
+				onComplete(new Error('Page not found'));
 				break;
 				
 			default:
-			
-				onComplete('Received an unsupported response code ' + response.statusCode);
+				
+				err = new Error('Received an unsupported response code');
+				err.http_status_code = response.statusCode;
+				onComplete(err);
+				
 		}
 		
 	};
@@ -77,8 +82,8 @@ var webPage = function(url, onComplete) {
 				handlePageResponse(response, body);
 				
 			} else {
-			
-				onComplete();
+
+				onComplete(err);
 			
 			}
 		};
