@@ -92,9 +92,9 @@ var webPage = function(url, onComplete) {
 
 	return {
 	
-		crawl: function(callback) {
+		crawl: function() {
 			
-			loadWebPage(callback);
+			loadWebPage();
 			
 		}
 	
