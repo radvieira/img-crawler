@@ -1,3 +1,3 @@
-img-crawler
+<h1>img-crawler</h1>
 
-A Nodejs module for downloading images from a website
+<p>A Nodejs module for downloading images from a website</p>
