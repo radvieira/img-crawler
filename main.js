@@ -73,25 +73,23 @@ var webPage = function(url, onComplete) {
 		
 	};
 	
-	var onPageLoaded = function() {
+	var onPageLoaded = function(err, response, body) {
+					
+		if(!err) {
 		
-		return function(err, response, body) {
+			handlePageResponse(response, body);
 			
-			if(!err) {
-			
-				handlePageResponse(response, body);
-				
-			} else {
+		} else {
 
-				onComplete(err);
+			onComplete(err);
+		
+		}
 			
-			}
-		};
 	};
 	
 	var loadWebPage = function() {
 	
-		request(url, onPageLoaded());		
+		request(url, onPageLoaded);		
 	
 	};
 
