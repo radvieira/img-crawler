@@ -15,7 +15,7 @@ suite('crawl', function() {
 	test('reads nested images', function(done) {
 	
 		fixture.crawl(makeURLFor('/single-img-scenario.html'), function(err, data){
-			
+
 			assert.equal(1, data.srcs.length);
 			assert.equal('img/yield.gif', data.srcs[0]);
 			
