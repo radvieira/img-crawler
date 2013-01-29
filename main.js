@@ -37,7 +37,7 @@ var webPage = function(source, onComplete) {
 		
 	};
 	
-	var onImgWriteComplete = function(isAllWritingComplete) {
+	var onImgComplete = function(isAllWritingComplete) {
 
 		return function() {
 			
@@ -57,9 +57,9 @@ var webPage = function(source, onComplete) {
 		
 			imgs.forEach(function(img, index){
 				
-				var isImgWritingComplete = index === imgs.length-1; 	
+				var isImgWritingComplete = (index === imgs.length-1); 	
 				
-				img.write(onImgWriteComplete(isImgWritingComplete));						
+				img.write(onImgComplete(isImgWritingComplete));						
 
 			});
 			
