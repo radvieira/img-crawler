@@ -2,33 +2,33 @@ var request = require('request'),
 
 	htmlparser = require("htmlparser"),
 	
-	fs = require('fs');
+	img = require('./lib/img');
 
 var webPage = function(source, onComplete) {
 	
-	var imageURLs = [],
-		
-		url = require('url').parse(source);
+	var imgs = [];
 	
-	var getSourceWhenImage = function(element) {
+	var getImg = function(element) {
 		
 		if(element.name === 'img' && element.attribs && element.attribs.src) {
-			return 	element.attribs.src.trim();
+
+			return img(source, element.attribs.src.trim());
+
 		}
 		
 	};
 	
 	var collectImages = function(elements) {
 
-		var i, element, src;
+		var i, element, img;
 		
 		for(i = 0; i < elements.length; i++) {
 			
 			element = elements[i];
-			src = getSourceWhenImage(element);
-			
-			if(src) {				
-				imageURLs.push(src);
+			img = getImg(element);
+
+			if(img) {
+				imgs.push(img);
 			} else if(element.children) {
 				collectImages(element.children);			
 			}
@@ -37,34 +37,41 @@ var webPage = function(source, onComplete) {
 		
 	};
 	
+	var onImgWriteComplete = function(isAllWritingComplete) {
+
+		return function() {
+			
+			if(isAllWritingComplete) {
+			
+				onComplete(undefined, {srcs: imgs});
+				
+			}
+			
+		};
+		
+	};
+	
 	var write = function() {
 
-		if(imageURLs.length) {
+		if(imgs.length) {
 		
-			imageURLs.forEach(function(element, index, array){
+			imgs.forEach(function(img, index){
 				
-				var uri = url.protocol + '//' + url.hostname + ':' + url.port + '/' + element,
-					fileName = element.replace('/', '-');
-	
-				request(uri).pipe(fs.createWriteStream(fileName));									
-					
-				if(index === imageURLs.length-1) {
+				var isImgWritingComplete = index === imgs.length-1; 	
 				
-					onComplete(undefined, {srcs: imageURLs});					
-				
-				}
-				
+				img.write(onImgWriteComplete(isImgWritingComplete));						
+
 			});
 			
 		} else {
 		
-			onComplete(undefined, {srcs: imageURLs});
+			onComplete(undefined, {srcs: imgs});
 			
 		}
 		
-	}
+	};
 	
-	var getImageSourcesFromBody = function(body) {
+	var writeImgs = function(body) {
 	
 		var handler = new htmlparser.DefaultHandler(function (error, dom) {
 	
@@ -85,7 +92,7 @@ var webPage = function(source, onComplete) {
 			
 			case 200: 
 				
-				getImageSourcesFromBody(body);
+				writeImgs(body);
 				break;
 			
 			case 404:

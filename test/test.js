@@ -17,7 +17,7 @@ suite('crawl', function() {
 		fixture.crawl(makeURLFor('/single-img-scenario.html'), function(err, data){
 
 			assert.equal(1, data.srcs.length);
-			assert.equal('img/yield.gif', data.srcs[0]);
+			assert.equal('img/yield.gif', data.srcs[0].path());
 			
 			done();
 		
@@ -30,9 +30,9 @@ suite('crawl', function() {
 		fixture.crawl(makeURLFor('/nested-img-scenario.html'), function(err, data){
 			
 			assert.equal(3, data.srcs.length);
-			assert.equal('img/yield.gif', data.srcs[0]);
-			assert.equal('img/email.png', data.srcs[1]);
-			assert.equal('img/facebook-icon.png', data.srcs[2]);
+			assert.equal('img/yield.gif', data.srcs[0].path());
+			assert.equal('img/email.png', data.srcs[1].path());
+			assert.equal('img/facebook-icon.png', data.srcs[2].path());
 			
 			done();
 		
