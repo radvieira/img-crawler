@@ -1,8 +1,37 @@
 var assert = require('assert'),
+	jsmockito = require('jsmockito').JsMockito,
+	requireMock = require('requiremock')(__filename),
 	http = require('http'),
-	dispatcher = require('./lib/request-route'),
-	fixture = require('../main'),
-	path = process.env.PWD + '/test/test-responses';
+	dispatcher = require('./lib/request-route');
+
+var img = jsmockito.mockFunction();
+
+jsmockito.when(img)().then(function() {
+	
+	return function(source, path) {
+
+		if (path) {
+			
+			return {
+				write: function(callback) {
+					callback();
+				}, 
+				path: function() {
+					return path;
+				}
+			};
+			
+		}
+		
+	}
+	
+});
+
+
+requireMock.mock('./lib/img', img);
+
+var	fixture = requireMock('../main');
+var	path = process.env.PWD + '/test/test-responses';
 
 http.createServer(dispatcher.root(path).route).listen(1111);
 
@@ -13,7 +42,7 @@ var makeURLFor = function(resourcePath) {
 suite('crawl', function() {
 	
 	test('reads nested images', function(done) {
-	
+		
 		fixture.crawl(makeURLFor('/single-img-scenario.html'), function(err, data){
 
 			assert.equal(1, data.srcs.length);
