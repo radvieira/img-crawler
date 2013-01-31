@@ -13,3 +13,6 @@ logs
 results
 
 npm-debug.log
+.project
+.settings/
+.externalToolBuilders/
