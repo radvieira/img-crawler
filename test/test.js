@@ -1,54 +1,51 @@
 var assert = require('assert'),
-	jsmockito = require('jsmockito').JsMockito,
-	requireMock = require('requiremock')(__filename),
 	http = require('http'),
-	dispatcher = require('./lib/request-route');
-
-var img = jsmockito.mockFunction();
-
-jsmockito.when(img)().then(function() {
+	dispatcher = require('./lib/request-route'),
+	fixture = require('../main'),
+	resourcePath = process.env.PWD + '/test/test-responses',
+	testOutPath = process.env.PWD + '/test-out',
+	fs = require('fs');
 	
-	return function(source, path) {
 
-		if (path) {
-			
-			return {
-				write: function(callback) {
-					callback();
-				}, 
-				path: function() {
-					return path;
-				}
-			};
-			
-		}
-		
-	}
-	
-});
-
-
-requireMock.mock('./lib/img', img);
-
-var	fixture = requireMock('../main');
-var	path = process.env.PWD + '/test/test-responses';
-
-http.createServer(dispatcher.root(path).route).listen(1111);
-
-var makeURLFor = function(resourcePath) {
-	return 'http://localhost:1111' + resourcePath;
-};
+http.createServer(dispatcher.root(resourcePath).route).listen(1111);
 
 suite('crawl', function() {
+
+	var makeURLFor = function(resourcePath) {
+		return 'http://localhost:1111' + resourcePath;
+	};
+	
+	var makeConfigFor = function(resourcePath, dist) {
+		return {
+			url: makeURLFor(resourcePath),
+			dist: testOutPath
+		};
+	};
+	
+	var cleanTestOutput = function(done) {
+		fs.exists(testOutPath, function(exists) {
+			if(exists) {
+				fs.rmdir(testOutPath, function(err){					
+					done();
+				});							
+			} else {
+				done();
+			}
+		});
+	};
+	
+	teardown(function(done){
+		cleanTestOutput(done);	
+	});
 	
 	test('reads nested images', function(done) {
 		
-		fixture.crawl(makeURLFor('/single-img-scenario.html'), function(err, data){
-
+		fixture.crawl(makeConfigFor('/single-img-scenario.html'), function(err, data) {
+		
 			assert.equal(1, data.srcs.length);
 			assert.equal('img/yield.gif', data.srcs[0].path());
 			
-			done();
+			done();		
 		
 		});
 	
@@ -56,14 +53,14 @@ suite('crawl', function() {
 	
 	test('reads multiple nested images', function(done) {
 
-		fixture.crawl(makeURLFor('/nested-img-scenario.html'), function(err, data){
-			
+		fixture.crawl(makeConfigFor('/nested-img-scenario.html'), function(err, data) {
+		
 			assert.equal(3, data.srcs.length);
 			assert.equal('img/yield.gif', data.srcs[0].path());
 			assert.equal('img/email.png', data.srcs[1].path());
-			assert.equal('img/facebook-icon.png', data.srcs[2].path());
+			assert.equal('img/facebook-icon.png', data.srcs[2].path());			
 			
-			done();
+			done();		
 		
 		});
 	
@@ -71,7 +68,7 @@ suite('crawl', function() {
 	
 	test('when no image tags', function(done) {
 		
-		fixture.crawl(makeURLFor('/no-img-tags-scenario.html'), function(err, data) {
+		fixture.crawl(makeConfigFor('/no-img-tags-scenario.html'), function(err, data) {
 
 			assert.equal(0, data.srcs.length);
 			
@@ -81,7 +78,7 @@ suite('crawl', function() {
 	
 	test('when image tag has no source attribute', function(done) {
 		
-		fixture.crawl(makeURLFor('/no-img-src-scenario.html'), function(err, data) {
+		fixture.crawl(makeConfigFor('/no-img-src-scenario.html'), function(err, data) {
 			
 			assert.equal(0, data.srcs.length);
 			
@@ -93,7 +90,7 @@ suite('crawl', function() {
 	
 	test('when image tag has empty source attribue', function(done) {
 
-		fixture.crawl(makeURLFor('/empty-img-src-scenario.html'), function(err, data) {
+		fixture.crawl(makeConfigFor('/empty-img-src-scenario.html'), function(err, data) {
 			
 			assert.equal(0, data.srcs.length);
 			
@@ -105,7 +102,7 @@ suite('crawl', function() {
 	
 	test('when page is not found', function(done) {
 	
-		fixture.crawl(makeURLFor('/no-where.html'), function(err, data) {
+		fixture.crawl(makeConfigFor('/no-where.html'), function(err, data) {
 		
 			assert.equal(err.message, 'Page not found');
 
@@ -124,7 +121,7 @@ suite('crawl', function() {
 			res.end();
 		});
 		
-		fixture.crawl(makeURLFor(resourcePath), function(err, data){
+		fixture.crawl(makeConfigFor(resourcePath), function(err, data){
 		
 			assert.equal(err.message, 'Received an unsupported response code');
 			assert.equal(err.http_status_code, 500);
@@ -138,7 +135,7 @@ suite('crawl', function() {
 	test('host connection refused', function(done) {
 		var noHostURL = 'http://localhost:1/bogus';
 
-		fixture.crawl(noHostURL, function(err, data){
+		fixture.crawl({url: noHostURL}, function(err, data){
 			
 			assert.equal(err.code, 'ECONNREFUSED');
 			
@@ -149,7 +146,7 @@ suite('crawl', function() {
 	});
 	
 	test('malformed URL', function(done) {
-		fixture.crawl('amalformedurl', function(err, data) {
+		fixture.crawl({url: 'amalformedurl'}, function(err, data) {
 		
 			assert.equal(err.message, 'Invalid URI "amalformedurl"');
 		

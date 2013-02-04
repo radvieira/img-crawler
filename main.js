@@ -1,18 +1,62 @@
 var request = require('request'),
 
-	htmlparser = require("htmlparser"),
-	
-	img = require('./lib/img');
+	fs = require('fs'),
 
-var webPage = function(source, onComplete) {
+	htmlparser = require("htmlparser");
+
+var img = function(host, imgPath){
+
+	var url;
+
+	if(imgPath) {
+		
+		url = require('url').parse(host);
+		
+		return {
+			
+			write: function(dir, onComplete) {
+			
+				var uri = url.protocol + '//' + url.hostname + ':' + url.port + '/' + imgPath,
+					
+					fileName = dir + '/' + imgPath.replace('/', '-');
+	
+				fs.exists(dir, function(exists) {
+					if(!exists) {
+						fs.mkdir(dir, function() {
+							onComplete();						
+						});
+					} else {
+						onComplete();
+					}
+// 					console.log(exists);
+					
+// 					var stream = fs.createWriteStream(fileName);
+// 					onComplete();
+// 					request(uri).on('end', onComplete).pipe(stream);					
+				});
+	
+
+				
+			},
+			
+			path: function() {
+				return imgPath;
+			}
+			
+		}
+		
+	}
+
+};
+
+var webPage = function(config, onComplete) {
 	
 	var imgs = [];
 	
 	var getImg = function(element) {
 		
 		if(element.name === 'img' && element.attribs && element.attribs.src) {
-
-			return img(source, element.attribs.src.trim());
+			return img(config.url, element.attribs.src.trim());
 
 		}
 		
@@ -58,8 +102,7 @@ var webPage = function(source, onComplete) {
 			imgs.forEach(function(img, index){
 				
 				var isImgWritingComplete = index === imgs.length-1; 	
-				
-				img.write(onImgWriteComplete(isImgWritingComplete));						
+				img.write(config.dist, onImgWriteComplete(isImgWritingComplete));						
 
 			});
 			
@@ -126,7 +169,7 @@ var webPage = function(source, onComplete) {
 	
 	var loadWebPage = function() {
 	
-		request(source, onPageLoaded);		
+		request(config, onPageLoaded);		
 	
 	};
 
@@ -142,8 +185,8 @@ var webPage = function(source, onComplete) {
 
 };
 
-module.exports.crawl = function(url, callback){
+module.exports.crawl = function(config, callback){
 
-	webPage(url, callback).crawl();
+	webPage(config, callback).crawl();
 
 };
