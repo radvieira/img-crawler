@@ -1,18 +1,63 @@
 var request = require('request'),
 
-	htmlparser = require("htmlparser"),
-	
-	img = require('./lib/img');
+	fs = require('fs'),
 
-var webPage = function(source, onComplete) {
+	htmlparser = require("htmlparser");
+
+var img = function(host, imgPath){
+
+	var url;
+	
+	if(imgPath) {
+		
+		url = require('url').parse(host);
+		
+		return {
+			
+			write: function(dir, onComplete) {
+			
+				var uri = url.protocol + '//' + url.hostname + ':' + url.port + '/' + imgPath;
+					
+				this.path = dir + '/' + imgPath.replace('/', '-');
+			
+				var that = this;
+				
+				var writeToDisk = function() {
+				
+					request(uri, function(err, response, body){
+						onComplete();						
+					}).pipe(fs.createWriteStream(that.path));
+					
+				};
+			
+				fs.exists(dir, function(exists) {
+					if(!exists) {
+						fs.mkdir(dir, function() {
+							writeToDisk();
+						});
+					} else {
+						writeToDisk();
+					}
+				});
+	
+			},
+			
+			src: imgPath
+			
+		}
+		
+	}
+
+};
+
+var webPage = function(config, onComplete) {
 	
 	var imgs = [];
 	
 	var getImg = function(element) {
 		
 		if(element.name === 'img' && element.attribs && element.attribs.src) {
-
-			return img(source, element.attribs.src.trim());
+			return img(config.url, element.attribs.src.trim());
 
 		}
 		
@@ -37,13 +82,32 @@ var webPage = function(source, onComplete) {
 		
 	};
 	
-	var onImgComplete = function(isAllWritingComplete) {
+	var makeResult = function() {
+		return {
+			imgs: []
+		};
+	};
+	
+	var onImgWriteComplete = function(isAllWritingComplete) {
 
 		return function() {
+			var result,
+				i;
 			
 			if(isAllWritingComplete) {
-			
-				onComplete(undefined, {srcs: imgs});
+				
+				result = makeResult();
+
+				for(i = 0; i < imgs.length; i++) {
+					result.imgs.push(
+						{
+							path: imgs[i].path,
+							src: imgs[i].src
+						}
+					);
+				}
+				
+				onComplete(undefined, result);
 				
 			}
 			
@@ -57,15 +121,14 @@ var webPage = function(source, onComplete) {
 		
 			imgs.forEach(function(img, index){
 				
-				var isImgWritingComplete = (index === imgs.length-1); 	
-				
-				img.write(onImgComplete(isImgWritingComplete));						
+				var isImgWritingComplete = index === imgs.length-1; 	
+				img.write(config.dist, onImgWriteComplete(isImgWritingComplete));						
 
 			});
 			
 		} else {
 		
-			onComplete(undefined, {srcs: imgs});
+			onComplete(undefined, makeResult());
 			
 		}
 		
@@ -126,7 +189,7 @@ var webPage = function(source, onComplete) {
 	
 	var loadWebPage = function() {
 	
-		request(source, onPageLoaded);		
+		request(config, onPageLoaded);		
 	
 	};
 
@@ -142,8 +205,8 @@ var webPage = function(source, onComplete) {
 
 };
 
-module.exports.crawl = function(url, callback){
+module.exports.crawl = function(config, callback){
 
-	webPage(url, callback).crawl();
+	webPage(config, callback).crawl();
 
 };

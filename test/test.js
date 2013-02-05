@@ -2,23 +2,53 @@ var assert = require('assert'),
 	http = require('http'),
 	dispatcher = require('./lib/request-route'),
 	fixture = require('../main'),
-	path = process.env.PWD + '/test/test-responses';
+	resourcePath = process.env.PWD + '/test/test-responses',
+	testOutPath = process.env.PWD + '/test-out',
+	rm = require('rimraf'),
+	fs = require('fs');
+	
 
-http.createServer(dispatcher.root(path).route).listen(1111);
-
-var makeURLFor = function(resourcePath) {
-	return 'http://localhost:1111' + resourcePath;
-};
+http.createServer(dispatcher.root(resourcePath).route).listen(1111);
 
 suite('crawl', function() {
 	
-	test('reads nested images', function(done) {
+	var makeConfigFor = function(resourcePath, dist) {
+		return {
+			url: 'http://localhost:1111' + resourcePath,
+			dist: testOutPath
+		};
+	};
 	
-		fixture.crawl(makeURLFor('/single-img-scenario.html'), function(err, data){
+	var cleanTestOutput = function(done) {
+		fs.exists(testOutPath, function(exists) {
+			if(exists) {
+				rm(testOutPath, function(err){
+					done();
+				});							
+			} else {
+				done();
+			}
+		});
+	};
+	
+	teardown(function(done){
+		cleanTestOutput(done);	
+	});
 
-			assert.equal(1, data.srcs.length);
-			assert.equal('img/yield.gif', data.srcs[0].path());
+	var assertFileOnDisk = function(path) {
+		assert.ok(fs.existsSync(path), path + ' wasn\'t found');
+	};
+	
+	test('reads nested images', function(done) {
+		
+		fixture.crawl(makeConfigFor('/single-img-scenario.html'), function(err, data) {
+
+			assert.equal(1, data.imgs.length);
 			
+			assert.equal('img/yield.gif', data.imgs[0].src);
+			assert.equal(testOutPath + '/img-yield.gif', data.imgs[0].path);			
+			assertFileOnDisk(data.imgs[0].path);
+
 			done();
 		
 		});
@@ -27,14 +57,23 @@ suite('crawl', function() {
 	
 	test('reads multiple nested images', function(done) {
 
-		fixture.crawl(makeURLFor('/nested-img-scenario.html'), function(err, data){
+		fixture.crawl(makeConfigFor('/nested-img-scenario.html'), function(err, data) {
+		
+			assert.equal(3, data.imgs.length);
+
+			assert.equal('img/yield.gif', data.imgs[0].src);
+			assert.equal(testOutPath + '/img-yield.gif', data.imgs[0].path);
+			assertFileOnDisk(data.imgs[0].path);
 			
-			assert.equal(3, data.srcs.length);
-			assert.equal('img/yield.gif', data.srcs[0].path());
-			assert.equal('img/email.png', data.srcs[1].path());
-			assert.equal('img/facebook-icon.png', data.srcs[2].path());
+			assert.equal('img/email.png', data.imgs[1].src);
+			assert.equal(testOutPath + '/img-email.png', data.imgs[1].path);
+			assertFileOnDisk(data.imgs[1].path);
 			
-			done();
+			assert.equal('img/facebook-icon.png', data.imgs[2].src);
+			assert.equal(testOutPath + '/img-facebook-icon.png', data.imgs[2].path);						
+			assertFileOnDisk(data.imgs[2].path);
+						
+			done();		
 		
 		});
 	
@@ -42,9 +81,9 @@ suite('crawl', function() {
 	
 	test('when no image tags', function(done) {
 		
-		fixture.crawl(makeURLFor('/no-img-tags-scenario.html'), function(err, data) {
+		fixture.crawl(makeConfigFor('/no-img-tags-scenario.html'), function(err, data) {
 
-			assert.equal(0, data.srcs.length);
+			assert.equal(0, data.imgs.length);
 			
 			done();
 		});
@@ -52,9 +91,9 @@ suite('crawl', function() {
 	
 	test('when image tag has no source attribute', function(done) {
 		
-		fixture.crawl(makeURLFor('/no-img-src-scenario.html'), function(err, data) {
+		fixture.crawl(makeConfigFor('/no-img-src-scenario.html'), function(err, data) {
 			
-			assert.equal(0, data.srcs.length);
+			assert.equal(0, data.imgs.length);
 			
 			done();			
 			
@@ -64,9 +103,9 @@ suite('crawl', function() {
 	
 	test('when image tag has empty source attribue', function(done) {
 
-		fixture.crawl(makeURLFor('/empty-img-src-scenario.html'), function(err, data) {
+		fixture.crawl(makeConfigFor('/empty-img-src-scenario.html'), function(err, data) {
 			
-			assert.equal(0, data.srcs.length);
+			assert.equal(0, data.imgs.length);
 			
 			done();			
 			
@@ -76,7 +115,7 @@ suite('crawl', function() {
 	
 	test('when page is not found', function(done) {
 	
-		fixture.crawl(makeURLFor('/no-where.html'), function(err, data) {
+		fixture.crawl(makeConfigFor('/no-where.html'), function(err, data) {
 		
 			assert.equal(err.message, 'Page not found');
 
@@ -95,7 +134,7 @@ suite('crawl', function() {
 			res.end();
 		});
 		
-		fixture.crawl(makeURLFor(resourcePath), function(err, data){
+		fixture.crawl(makeConfigFor(resourcePath), function(err, data){
 		
 			assert.equal(err.message, 'Received an unsupported response code');
 			assert.equal(err.http_status_code, 500);
@@ -109,7 +148,7 @@ suite('crawl', function() {
 	test('host connection refused', function(done) {
 		var noHostURL = 'http://localhost:1/bogus';
 
-		fixture.crawl(noHostURL, function(err, data){
+		fixture.crawl({url: noHostURL}, function(err, data){
 			
 			assert.equal(err.code, 'ECONNREFUSED');
 			
@@ -120,7 +159,7 @@ suite('crawl', function() {
 	});
 	
 	test('malformed URL', function(done) {
-		fixture.crawl('amalformedurl', function(err, data) {
+		fixture.crawl({url: 'amalformedurl'}, function(err, data) {
 		
 			assert.equal(err.message, 'Invalid URI "amalformedurl"');
 		
