@@ -52,7 +52,10 @@ var img = function(host, imgPath){
 
 var webPage = function(config, onComplete) {
 	
-	var imgs = [];
+	var imgs = [],
+		crawled = {
+			imgs: []
+		};
 	
 	var getImg = function(element) {
 		
@@ -82,24 +85,15 @@ var webPage = function(config, onComplete) {
 		
 	};
 	
-	var makeResult = function() {
-		return {
-			imgs: []
-		};
-	};
-	
 	var onImgWriteComplete = function(isAllWritingComplete) {
 
 		return function() {
-			var result,
-				i;
+			var i;
 			
 			if(isAllWritingComplete) {
-				
-				result = makeResult();
 
 				for(i = 0; i < imgs.length; i++) {
-					result.imgs.push(
+					crawled.imgs.push(
 						{
 							path: imgs[i].path,
 							src: imgs[i].src
@@ -107,30 +101,11 @@ var webPage = function(config, onComplete) {
 					);
 				}
 				
-				onComplete(undefined, result);
+				onComplete(undefined, crawled);
 				
 			}
 			
 		};
-		
-	};
-	
-	var write = function() {
-
-		if(imgs.length) {
-		
-			imgs.forEach(function(img, index){
-				
-				var isImgWritingComplete = index === imgs.length-1; 	
-				img.write(config.dist, onImgWriteComplete(isImgWritingComplete));						
-
-			});
-			
-		} else {
-		
-			onComplete(undefined, makeResult());
-			
-		}
 		
 	};
 	
@@ -139,7 +114,21 @@ var webPage = function(config, onComplete) {
 		var handler = new htmlparser.DefaultHandler(function (error, dom) {
 	
 			collectImages(dom);
-			write();
+			
+			if(imgs.length) {
+			
+				imgs.forEach(function(img, index){
+					
+					var isImgWritingComplete = index === imgs.length-1; 	
+					img.write(config.dist, onImgWriteComplete(isImgWritingComplete));						
+	
+				});
+				
+			} else {
+			
+				onComplete(undefined, crawled);
+				
+			}
 			
 		});
 		
