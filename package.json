@@ -8,7 +8,8 @@
     "request": "~2.12.0"
   },
   "devDependencies": {
-    "mocha": "~1.8.1"
+    "mocha": "~1.8.1",
+    "rimraf": "~2.1.2"
   },
   "scripts": {
     "test": "make test"

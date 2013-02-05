@@ -7,7 +7,7 @@ var request = require('request'),
 var img = function(host, imgPath){
 
 	var url;
-
+	
 	if(imgPath) {
 		
 		url = require('url').parse(host);
@@ -16,32 +16,33 @@ var img = function(host, imgPath){
 			
 			write: function(dir, onComplete) {
 			
-				var uri = url.protocol + '//' + url.hostname + ':' + url.port + '/' + imgPath,
+				var uri = url.protocol + '//' + url.hostname + ':' + url.port + '/' + imgPath;
 					
-					fileName = dir + '/' + imgPath.replace('/', '-');
-	
+				this.path = dir + '/' + imgPath.replace('/', '-');
+			
+				var that = this;
+				
+				var writeToDisk = function() {
+				
+					request(uri, function(err, response, body){
+						onComplete();						
+					}).pipe(fs.createWriteStream(that.path));
+					
+				};
+			
 				fs.exists(dir, function(exists) {
 					if(!exists) {
 						fs.mkdir(dir, function() {
-							onComplete();						
+							writeToDisk();
 						});
 					} else {
-						onComplete();
+						writeToDisk();
 					}
-// 					console.log(exists);
-					
-// 					var stream = fs.createWriteStream(fileName);
-// 					onComplete();
-// 					request(uri).on('end', onComplete).pipe(stream);					
 				});
 	
-
-				
 			},
 			
-			path: function() {
-				return imgPath;
-			}
+			src: imgPath
 			
 		}
 		
@@ -81,13 +82,32 @@ var webPage = function(config, onComplete) {
 		
 	};
 	
+	var makeResult = function() {
+		return {
+			imgs: []
+		};
+	};
+	
 	var onImgWriteComplete = function(isAllWritingComplete) {
 
 		return function() {
+			var result,
+				i;
 			
 			if(isAllWritingComplete) {
-			
-				onComplete(undefined, {srcs: imgs});
+				
+				result = makeResult();
+
+				for(i = 0; i < imgs.length; i++) {
+					result.imgs.push(
+						{
+							path: imgs[i].path,
+							src: imgs[i].src
+						}
+					);
+				}
+				
+				onComplete(undefined, result);
 				
 			}
 			
@@ -108,7 +128,7 @@ var webPage = function(config, onComplete) {
 			
 		} else {
 		
-			onComplete(undefined, {srcs: imgs});
+			onComplete(undefined, makeResult());
 			
 		}
 		

@@ -4,20 +4,17 @@ var assert = require('assert'),
 	fixture = require('../main'),
 	resourcePath = process.env.PWD + '/test/test-responses',
 	testOutPath = process.env.PWD + '/test-out',
+	rm = require('rimraf'),
 	fs = require('fs');
 	
 
 http.createServer(dispatcher.root(resourcePath).route).listen(1111);
 
 suite('crawl', function() {
-
-	var makeURLFor = function(resourcePath) {
-		return 'http://localhost:1111' + resourcePath;
-	};
 	
 	var makeConfigFor = function(resourcePath, dist) {
 		return {
-			url: makeURLFor(resourcePath),
+			url: 'http://localhost:1111' + resourcePath,
 			dist: testOutPath
 		};
 	};
@@ -25,7 +22,7 @@ suite('crawl', function() {
 	var cleanTestOutput = function(done) {
 		fs.exists(testOutPath, function(exists) {
 			if(exists) {
-				fs.rmdir(testOutPath, function(err){					
+				rm(testOutPath, function(err){
 					done();
 				});							
 			} else {
@@ -37,15 +34,22 @@ suite('crawl', function() {
 	teardown(function(done){
 		cleanTestOutput(done);	
 	});
+
+	var assertFileOnDisk = function(path) {
+		assert.ok(fs.existsSync(path), path + ' wasn\'t found');
+	};
 	
 	test('reads nested images', function(done) {
 		
 		fixture.crawl(makeConfigFor('/single-img-scenario.html'), function(err, data) {
-		
-			assert.equal(1, data.srcs.length);
-			assert.equal('img/yield.gif', data.srcs[0].path());
+
+			assert.equal(1, data.imgs.length);
 			
-			done();		
+			assert.equal('img/yield.gif', data.imgs[0].src);
+			assert.equal(testOutPath + '/img-yield.gif', data.imgs[0].path);			
+			assertFileOnDisk(data.imgs[0].path);
+
+			done();
 		
 		});
 	
@@ -55,11 +59,20 @@ suite('crawl', function() {
 
 		fixture.crawl(makeConfigFor('/nested-img-scenario.html'), function(err, data) {
 		
-			assert.equal(3, data.srcs.length);
-			assert.equal('img/yield.gif', data.srcs[0].path());
-			assert.equal('img/email.png', data.srcs[1].path());
-			assert.equal('img/facebook-icon.png', data.srcs[2].path());			
+			assert.equal(3, data.imgs.length);
+
+			assert.equal('img/yield.gif', data.imgs[0].src);
+			assert.equal(testOutPath + '/img-yield.gif', data.imgs[0].path);
+			assertFileOnDisk(data.imgs[0].path);
 			
+			assert.equal('img/email.png', data.imgs[1].src);
+			assert.equal(testOutPath + '/img-email.png', data.imgs[1].path);
+			assertFileOnDisk(data.imgs[1].path);
+			
+			assert.equal('img/facebook-icon.png', data.imgs[2].src);
+			assert.equal(testOutPath + '/img-facebook-icon.png', data.imgs[2].path);						
+			assertFileOnDisk(data.imgs[2].path);
+						
 			done();		
 		
 		});
@@ -70,7 +83,7 @@ suite('crawl', function() {
 		
 		fixture.crawl(makeConfigFor('/no-img-tags-scenario.html'), function(err, data) {
 
-			assert.equal(0, data.srcs.length);
+			assert.equal(0, data.imgs.length);
 			
 			done();
 		});
@@ -80,7 +93,7 @@ suite('crawl', function() {
 		
 		fixture.crawl(makeConfigFor('/no-img-src-scenario.html'), function(err, data) {
 			
-			assert.equal(0, data.srcs.length);
+			assert.equal(0, data.imgs.length);
 			
 			done();			
 			
@@ -92,7 +105,7 @@ suite('crawl', function() {
 
 		fixture.crawl(makeConfigFor('/empty-img-src-scenario.html'), function(err, data) {
 			
-			assert.equal(0, data.srcs.length);
+			assert.equal(0, data.imgs.length);
 			
 			done();			
 			
