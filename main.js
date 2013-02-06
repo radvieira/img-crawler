@@ -21,16 +21,21 @@ var img = function(host, imgPath){
 				var writeTo = dir + '/' + imgPath.replace('/', '-');
 				
 				var writeToDisk = function() {
+					
 					var stream = fs.createWriteStream(writeTo);
 
 					stream.on('close', function(){
 						onComplete({
 							src: imgPath,
 							path: writeTo
-						});
+						});							
 					});
 					
-					request(uri).pipe(stream);
+					request(uri).on('response', function(response) {
+						if(response.statusCode === 200) {
+							this.pipe(stream);
+						}
+					});
 					
 				};
 			
