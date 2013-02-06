@@ -18,15 +18,19 @@ var img = function(host, imgPath){
 			
 				var uri = url.protocol + '//' + url.hostname + ':' + url.port + '/' + imgPath;
 					
-				this.path = dir + '/' + imgPath.replace('/', '-');
-			
-				var that = this;
+				var writeTo = dir + '/' + imgPath.replace('/', '-');
 				
 				var writeToDisk = function() {
-				
-					request(uri, function(err, response, body){
-						onComplete();						
-					}).pipe(fs.createWriteStream(that.path));
+					var stream = fs.createWriteStream(writeTo);
+
+					stream.on('close', function(){
+						onComplete({
+							src: imgPath,
+							path: writeTo
+						});
+					});
+					
+					request(uri).pipe(stream);
 					
 				};
 			
@@ -40,9 +44,7 @@ var img = function(host, imgPath){
 					}
 				});
 	
-			},
-			
-			src: imgPath
+			}
 			
 		}
 		
@@ -85,29 +87,24 @@ var webPage = function(config, onComplete) {
 		
 	};
 	
-	var onImgWriteComplete = function(isAllWritingComplete) {
+/*	var onImgWriteComplete = function() {
 
-		return function() {
-			var i;
-			
-			if(isAllWritingComplete) {
+		return function(data) {
 
-				for(i = 0; i < imgs.length; i++) {
-					crawled.imgs.push(
-						{
-							path: imgs[i].path,
-							src: imgs[i].src
-						}
-					);
-				}
-				
+			crawled.imgs.push(data);
+
+			console.log('Crawled is now:');
+			console.dir(crawled);
+
+			if(counter === imgs.length-1) {
+				console.log('Complete');
 				onComplete(undefined, crawled);
 				
 			}
 			
 		};
 		
-	};
+	};*/
 	
 	var writeImgs = function(body) {
 	
@@ -119,8 +116,12 @@ var webPage = function(config, onComplete) {
 			
 				imgs.forEach(function(img, index){
 					
-					var isImgWritingComplete = index === imgs.length-1; 	
-					img.write(config.dist, onImgWriteComplete(isImgWritingComplete));						
+					img.write(config.dist, function(data){
+						crawled.imgs.push(data);
+						if(crawled.imgs.length === imgs.length) {
+							onComplete(undefined, crawled);
+						}
+					});						
 	
 				});
 				

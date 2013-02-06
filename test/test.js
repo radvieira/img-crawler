@@ -10,44 +10,70 @@ var assert = require('assert'),
 
 http.createServer(dispatcher.root(resourcePath).route).listen(1111);
 
-suite('crawl', function() {
-	
-	var makeConfigFor = function(resourcePath, dist) {
-		return {
-			url: 'http://localhost:1111' + resourcePath,
-			dist: testOutPath
-		};
+var makeConfigFor = function(resourcePath, dist) {
+	return {
+		url: 'http://localhost:1111' + resourcePath,
+		dist: testOutPath
 	};
-	
-	var cleanTestOutput = function(done) {
-		fs.exists(testOutPath, function(exists) {
-			if(exists) {
-				rm(testOutPath, function(err){
-					done();
-				});							
-			} else {
+};
+
+var cleanTestOutput = function(done) {
+	fs.exists(testOutPath, function(exists) {
+		if(exists) {
+			rm(testOutPath, function(err){
 				done();
-			}
-		});
-	};
+			});							
+		} else {
+			done();
+		}
+	});
+};
+
+var assertFileOnDisk = function(path) {
+	assert.ok(fs.existsSync(path), path + ' wasn\'t found');
+};
+
+var assertImages = function(expected, actual) {
 	
+	var i,
+		expectedImg,
+		actualImg,
+		imgs;
+	
+	assert.equal(expected.imgs.length, actual.imgs.length, 'Crawled wrong # of imgs');
+	
+	for(i = 0; i < expected.imgs.length; i++) {
+		
+		expectedImg = expected.imgs[i];
+		
+		imgs = actual.imgs.filter(function(element, index, array){
+			return expectedImg.src === element.src;
+		});
+
+		assert.ok(imgs.length, 'Didn\'t find Img with src ' + expectedImg.src);
+		assert.equal(expectedImg.path, imgs[0].path, 'Img paths don\'t match');
+		assertFileOnDisk(imgs[0].path);
+		
+	}
+};
+
+suite('crawl', function() {
+		
 	teardown(function(done){
 		cleanTestOutput(done);	
 	});
-
-	var assertFileOnDisk = function(path) {
-		assert.ok(fs.existsSync(path), path + ' wasn\'t found');
-	};
 	
 	test('reads nested images', function(done) {
 		
 		fixture.crawl(makeConfigFor('/single-img-scenario.html'), function(err, data) {
 
-			assert.equal(1, data.imgs.length);
+			var expected = {
+				imgs: [
+					{src: 'img/yield.gif', path: testOutPath + '/img-yield.gif'}
+				]
+			};
 			
-			assert.equal('img/yield.gif', data.imgs[0].src);
-			assert.equal(testOutPath + '/img-yield.gif', data.imgs[0].path);			
-			assertFileOnDisk(data.imgs[0].path);
+			assertImages(expected, data);
 
 			done();
 		
@@ -58,20 +84,16 @@ suite('crawl', function() {
 	test('reads multiple nested images', function(done) {
 
 		fixture.crawl(makeConfigFor('/nested-img-scenario.html'), function(err, data) {
-		
-			assert.equal(3, data.imgs.length);
 
-			assert.equal('img/yield.gif', data.imgs[0].src);
-			assert.equal(testOutPath + '/img-yield.gif', data.imgs[0].path);
-			assertFileOnDisk(data.imgs[0].path);
+			var expected = {
+				imgs: [
+					{src: 'img/yield.gif', path: testOutPath + '/img-yield.gif'},
+					{src: 'img/email.png', path: testOutPath + '/img-email.png'},
+					{src: 'img/facebook-icon.png', path: testOutPath + '/img-facebook-icon.png'}					
+				]
+			};
 			
-			assert.equal('img/email.png', data.imgs[1].src);
-			assert.equal(testOutPath + '/img-email.png', data.imgs[1].path);
-			assertFileOnDisk(data.imgs[1].path);
-			
-			assert.equal('img/facebook-icon.png', data.imgs[2].src);
-			assert.equal(testOutPath + '/img-facebook-icon.png', data.imgs[2].path);						
-			assertFileOnDisk(data.imgs[2].path);
+			assertImages(expected, data);
 						
 			done();		
 		
@@ -83,7 +105,7 @@ suite('crawl', function() {
 		
 		fixture.crawl(makeConfigFor('/no-img-tags-scenario.html'), function(err, data) {
 
-			assert.equal(0, data.imgs.length);
+			assertImages({imgs: []}, data);
 			
 			done();
 		});
@@ -93,7 +115,7 @@ suite('crawl', function() {
 		
 		fixture.crawl(makeConfigFor('/no-img-src-scenario.html'), function(err, data) {
 			
-			assert.equal(0, data.imgs.length);
+			assertImages({imgs: []}, data);
 			
 			done();			
 			
@@ -105,7 +127,7 @@ suite('crawl', function() {
 
 		fixture.crawl(makeConfigFor('/empty-img-src-scenario.html'), function(err, data) {
 			
-			assert.equal(0, data.imgs.length);
+			assertImages({imgs: []}, data);
 			
 			done();			
 			
