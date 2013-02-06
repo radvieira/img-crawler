@@ -92,25 +92,6 @@ var webPage = function(config, onComplete) {
 		
 	};
 	
-/*	var onImgWriteComplete = function() {
-
-		return function(data) {
-
-			crawled.imgs.push(data);
-
-			console.log('Crawled is now:');
-			console.dir(crawled);
-
-			if(counter === imgs.length-1) {
-				console.log('Complete');
-				onComplete(undefined, crawled);
-				
-			}
-			
-		};
-		
-	};*/
-	
 	var writeImgs = function(body) {
 	
 		var handler = new htmlparser.DefaultHandler(function (error, dom) {
