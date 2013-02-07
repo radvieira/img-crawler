@@ -1,4 +1,4 @@
-var fixture = require('../lib/mkdir'),
+var fixture = require('../lib/mkdir-p'),
 	assert = require('assert'),
 	fs = require('fs'),
 	rm = require('rimraf');
