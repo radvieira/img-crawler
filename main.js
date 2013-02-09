@@ -111,7 +111,6 @@ var webPage = function(config, onComplete) {
 	};
 	
 	var loadWebPage = function() {
-	
 		request(config, onPageLoaded);		
 	
 	};

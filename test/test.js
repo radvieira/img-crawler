@@ -69,7 +69,7 @@ suite('crawl', function() {
 
 			var expected = {
 				imgs: [
-					{src: 'img/yield.gif', path: testOutPath + '/img-yield.gif'}
+					{src: 'img/yield.gif', path: testOutPath + '/img/yield.gif'}
 				]
 			};
 			
@@ -87,9 +87,9 @@ suite('crawl', function() {
 
 			var expected = {
 				imgs: [
-					{src: 'img/yield.gif', path: testOutPath + '/img-yield.gif'},
-					{src: 'img/email.png', path: testOutPath + '/img-email.png'},
-					{src: 'img/facebook-icon.png', path: testOutPath + '/img-facebook-icon.png'}					
+					{src: 'img/yield.gif', path: testOutPath + '/img/yield.gif'},
+					{src: 'img/email.png', path: testOutPath + '/img/email.png'},
+					{src: 'img/facebook-icon.png', path: testOutPath + '/img/facebook-icon.png'}					
 				]
 			};
 			
@@ -99,6 +99,25 @@ suite('crawl', function() {
 		
 		});
 	
+	});
+	
+	test('when image src begings with "/" in path', function(done) {
+		
+		fixture.crawl(makeConfigFor('/img-beginning-with-slash.html'), function(err, data) {
+			
+			var expected = {
+				imgs: [
+					{src: '/img/yield.gif', path: testOutPath + '/img/yield.gif'}
+				]
+			};
+			
+			assert.ok(!err, 'Didn\'t expect to receive ' + err);
+			assertImages(expected, data);
+
+			done();
+					
+		});
+		
 	});
 	
 	test('when no image tags', function(done) {
@@ -134,7 +153,7 @@ suite('crawl', function() {
 		});
 	
 	});
-	
+
 	test('when page is not found', function(done) {
 	
 		fixture.crawl(makeConfigFor('/no-where.html'), function(err, data) {
@@ -188,7 +207,7 @@ suite('crawl', function() {
 			done();
 		});
 	});
-	
+
 });
 
 	
