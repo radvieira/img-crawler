@@ -120,6 +120,27 @@ suite('crawl', function() {
 		
 	});
 	
+	test('when image has absolute URL', function(done){
+
+		fixture.crawl(makeConfigFor('/img-with-absolute-url.html'), function(err, data) {
+			var expected = {
+				imgs: [
+					{
+						src: 'http://localhost:1111/img/yield.gif', 
+						path: testOutPath + '/localhost/img/yield.gif'
+					}
+				]
+			};
+			
+			assert.ok(!err, 'Didn\'t expect to receive ' + err);
+			assertImages(expected, data);
+			
+			done();
+			
+		});
+		
+	});
+	
 	test('when no image tags', function(done) {
 		
 		fixture.crawl(makeConfigFor('/no-img-tags-scenario.html'), function(err, data) {
