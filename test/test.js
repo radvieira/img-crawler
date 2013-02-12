@@ -52,6 +52,7 @@ var assertImages = function(expected, actual) {
 
 		assert.ok(imgs.length, 'Didn\'t find Img with src ' + expectedImg.src);
 		assert.equal(expectedImg.path, imgs[0].path, 'Img paths don\'t match');
+		assert.equal(200, imgs[0].statusCode);
 		assertFileOnDisk(imgs[0].path);
 		
 	}
@@ -140,6 +141,22 @@ suite('crawl', function() {
 		});
 		
 	});
+	
+	test('when image url is broken', function(done) {
+	
+		fixture.crawl(makeConfigFor('/img-url-to-no-where.html'), function(err, data) {
+		
+			assert.ok(!err, 'Didn\'t expect to receive ' + err);
+			
+			assert.equal('img/not-found.gif', data.imgs[0].src);
+			assert.equal(false, data.imgs[0].success);
+			assert.equal(404, data.imgs[0].statusCode);
+			
+			done();
+		
+		});
+	
+	});	
 	
 	test('when no image tags', function(done) {
 		
