@@ -51,8 +51,8 @@ var assertImages = function(expected, actual) {
 		});
 
 		assert.ok(imgs.length, 'Didn\'t find Img with src ' + expectedImg.src);
-		assert.equal(expectedImg.path, imgs[0].path, 'Img paths don\'t match');
 		assert.equal(200, imgs[0].statusCode);
+		assert.equal(expectedImg.path, imgs[0].path);
 		assertFileOnDisk(imgs[0].path);
 		
 	}
@@ -141,6 +141,42 @@ suite('crawl', function() {
 		});
 		
 	});
+
+	test('when image url is up a level', function(done) {
+
+		fixture.crawl(makeConfigFor('/a-directory/imgs-up-a-level.html'), function(err, data) {
+			var expected = {
+				imgs: [{
+					src: '../img/email.png',
+					path: testOutPath + '/img/email.png'
+				}]
+			};
+
+			assert.ok(!err, 'Didn\'t expect to receive ' + err);
+			assertImages(expected, data);
+
+			done();
+		});
+	
+	});
+	
+	test('when image url is up 2 levels', function(done) {
+
+		fixture.crawl(makeConfigFor('/a-directory/b-directory/imgs-up-2-levels.html'), function(err, data) {
+			var expected = {
+				imgs: [{
+					src: '../../img/email.png',
+					path: testOutPath + '/img/email.png'
+				}]
+			};
+
+			assert.ok(!err, 'Didn\'t expect to receive ' + err);
+			assertImages(expected, data);
+
+			done();
+		});
+	
+	});	
 	
 	test('when image url is broken', function(done) {
 	
