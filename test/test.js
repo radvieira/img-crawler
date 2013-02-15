@@ -51,9 +51,13 @@ var assertImages = function(expected, actual) {
 		});
 
 		assert.ok(imgs.length, 'Didn\'t find Img with src ' + expectedImg.src);
-		assert.equal(200, imgs[0].statusCode);
+		assert.equal(expectedImg.statusCode, imgs[0].statusCode);
+		assert.equal(expectedImg.success, imgs[0].success);
 		assert.equal(expectedImg.path, imgs[0].path);
-		assertFileOnDisk(imgs[0].path);
+		
+		if(expectedImg.path && expectedImg.path.trim()) {
+			assertFileOnDisk(imgs[0].path);
+		}
 		
 	}
 };
@@ -70,7 +74,11 @@ suite('crawl', function() {
 
 			var expected = {
 				imgs: [
-					{src: 'img/yield.gif', path: testOutPath + '/img/yield.gif'}
+					{	src: 'img/yield.gif', 
+						path: testOutPath + '/img/yield.gif', 
+						success: true,
+						statusCode: 200
+					}
 				]
 			};
 			
@@ -88,9 +96,24 @@ suite('crawl', function() {
 
 			var expected = {
 				imgs: [
-					{src: 'img/yield.gif', path: testOutPath + '/img/yield.gif'},
-					{src: 'img/email.png', path: testOutPath + '/img/email.png'},
-					{src: 'img/facebook-icon.png', path: testOutPath + '/img/facebook-icon.png'}					
+					{
+						src: 'img/yield.gif', 
+						path: testOutPath + '/img/yield.gif',
+						success: true,
+						statusCode: 200
+					},
+					{	
+						src: 'img/email.png', 
+						path: testOutPath + '/img/email.png',
+						success: true,
+						statusCode: 200						
+					},
+					{	
+						src: 'img/facebook-icon.png', 
+						path: testOutPath + '/img/facebook-icon.png',
+						success: true,
+						statusCode: 200						
+					}					
 				]
 			};
 			
@@ -108,7 +131,12 @@ suite('crawl', function() {
 			
 			var expected = {
 				imgs: [
-					{src: '/img/yield.gif', path: testOutPath + '/img/yield.gif'}
+					{
+						src: '/img/yield.gif', 
+						path: testOutPath + '/img/yield.gif',
+						success: true,
+						statusCode: 200						
+					}
 				]
 			};
 			
@@ -128,7 +156,9 @@ suite('crawl', function() {
 				imgs: [
 					{
 						src: 'http://localhost:1111/img/yield.gif', 
-						path: testOutPath + '/localhost/img/yield.gif'
+						path: testOutPath + '/localhost/img/yield.gif',
+						success: true,
+						statusCode: 200						
 					}
 				]
 			};
@@ -148,7 +178,9 @@ suite('crawl', function() {
 			var expected = {
 				imgs: [{
 					src: '../img/email.png',
-					path: testOutPath + '/img/email.png'
+					path: testOutPath + '/img/email.png',
+					success: true,
+					statusCode: 200					
 				}]
 			};
 
@@ -166,7 +198,9 @@ suite('crawl', function() {
 			var expected = {
 				imgs: [{
 					src: '../../img/email.png',
-					path: testOutPath + '/img/email.png'
+					path: testOutPath + '/img/email.png',
+					success: true,
+					statusCode: 200					
 				}]
 			};
 
@@ -182,11 +216,16 @@ suite('crawl', function() {
 	
 		fixture.crawl(makeConfigFor('/img-url-to-no-where.html'), function(err, data) {
 		
+			var expected = {
+				imgs: [{
+					src: 'img/not-found.gif',
+					success: false,
+					statusCode: 404
+				}]
+			}
+		
 			assert.ok(!err, 'Didn\'t expect to receive ' + err);
-			
-			assert.equal('img/not-found.gif', data.imgs[0].src);
-			assert.equal(false, data.imgs[0].success);
-			assert.equal(404, data.imgs[0].statusCode);
+			assertImages(expected, data);
 			
 			done();
 		
