@@ -55,6 +55,10 @@ var assertImages = function(expected, actual) {
 		assert.equal(expectedImg.success, imgs[0].success);
 		assert.equal(expectedImg.path, imgs[0].path);
 		
+		if(expectedImg.error) {
+			assert.equal(expectedImg.error.code, imgs[0].error.code);			
+		}
+
 		if(expectedImg.path && expectedImg.path.trim()) {
 			assertFileOnDisk(imgs[0].path);
 		}
@@ -265,6 +269,26 @@ suite('crawl', function() {
 			
 		});
 	
+	});
+	
+	test('when invalid img uri', function(done) {
+	
+		fixture.crawl(makeConfigFor('/invalid-img-uri.html'), function(err, data) {
+		
+			var expected = {
+				imgs: [{
+						src: 'http://localhost:invalid-img-uri.html/yield.gif',
+						success: false,
+						error: {code: "ECONNREFUSED"}
+				}]	
+			};
+
+			assert.ok(!err, 'Didn\'t expect to receive ' + err);
+			assertImages(expected, data);
+		
+			done();
+		
+		});
 	});
 
 	test('when page is not found', function(done) {
