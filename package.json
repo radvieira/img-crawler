@@ -1,7 +1,7 @@
 {
   "name": "img-crawler",
   "author": "Raul Vieira <radvieira@gmail.com>",
-  "contributors": ["Mike Melo <melom@intelliware.ca>"]
+  "contributors": ["Mike Melo <melom@intelliware.ca>"],
   "version": "0.0.1",
   "description": "A module to download images from a given URL",
   "main": "main.js",
