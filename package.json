@@ -1,8 +1,10 @@
 {
   "name": "img-crawler",
   "author": "Raul Vieira <radvieira@gmail.com>",
-  "contributors": ["Mike Melo <melom@intelliware.ca>"],
-  "version": "0.0.1",
+  "contributors": [
+    "Mike Melo <melom@intelliware.ca>"
+  ],
+  "version": "0.0.2",
   "description": "A module to download images from a given URL",
   "main": "main.js",
   "dependencies": {
@@ -30,7 +32,6 @@
     "graphics",
     "spider"
   ],
-  "author": "Raul Vieira <radvieira@gmail.com>",
   "license": "BSD",
   "readmeFilename": "README.md",
   "directories": {

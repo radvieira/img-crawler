@@ -4,11 +4,8 @@
 </a>
 <p>A Node module for downloading images to disk from a given URL.</p>
 <h2>Installation</h2>
-<p>Eventually you will be able to install this from 
-<a href="http://github.com/isaacs/npm">npm</a>.  Until then you can use npm to install the 
-dependencies by running this from the root of the project directory:</p>
 <pre>
-    <code>npm install</code>
+    <code>npm install img-crawler</code>
 </pre>
 <h2>Running the tests</h2>
 <p>From the module directory run:</p>
