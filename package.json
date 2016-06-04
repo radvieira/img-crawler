@@ -10,7 +10,7 @@
   "dependencies": {
     "htmlparser": "~1.7.6",
     "request": "~2.12.0",
-    "public": "git://github.com/mike-melo/morefs.git#master"
+    "morefs": "https://github.com/mike-melo/morefs.git#master"
   },
   "devDependencies": {
     "mocha": "~1.8.1",
